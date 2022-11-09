@@ -39,6 +39,11 @@ app.get('/test', (req, res) => {
     });
 })
 
+// all routes
+app.post('/add-services', (req, res) => {
+    const { userId, title, price, photoURL, description} = req.body;
+});
+
 
 //listen app
 app.listen(port, () => {
