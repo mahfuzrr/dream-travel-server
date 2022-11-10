@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const Service = require('./Service');
 const { notFoundHandler, errorHandler } = require("./errorHandler");
+const jwt = require('jsonwebtoken');
 
 const port = process.env.PORT || 5000;
 
@@ -29,14 +30,55 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-//routing setup
-app.get('/test', (req, res) => {
-    res.send({
-        message: "This is working",
-    });
-})
-
 // all routes
+
+// verify user
+
+const authCheck = (req, res, next) => {
+    const token = req.headers.authorization;
+
+    if(token){
+        const decode = jwt.verify(token, process.env.JWT_SECRET, (err, result) => {
+            if(err){
+                res.json({
+                    success: false,
+                    message: "Unauthorized Access!",
+                })
+            }
+            else{
+                if(!result?.uId){
+                    res.json({
+                        success: false,
+                        message: "Unauthorized Access!",
+                    })
+                }
+                else next();
+            }
+        });
+    }
+    else{
+        res.json({
+            success: false,
+            message: "Unauthorized Access !",
+        })
+    };
+}
+
+// jwt
+app.post('/jwt-token', (req, res) => {
+    const {email, uId} = req.body;
+    const token = jwt.sign({
+        email,
+        uId,
+    }, process.env.JWT_SECRET, {
+        expiresIn: '3 days'
+    });
+
+    res.json({
+        success: true,
+        token,
+    });
+});
 
 //add service
 app.post('/add-services', (req, res) => {
@@ -70,7 +112,7 @@ app.post('/add-services', (req, res) => {
 app.get('/get-services/:id', (req, res) => {
     const {id} = req.params;
 
-    Service.find({userId: id}).then((result) => {
+    Service.find({userId: id}).sort({'createdAt': -1}).limit(3).then((result) => {
         res.json({
             success: true,
             message: result,
@@ -153,9 +195,8 @@ app.post('/add-review', (req, res) => {
 
 
 // get review by uid
-app.get('/get-user-reviews/:id', async(req, res) => {
+app.get('/get-user-reviews/:id', authCheck, async(req, res) => {
     const {id} = req.params;
-
     try{
         const test = await Service.collection.find({reviews: {$elemMatch: {uId: id}}}).toArray();
         res.json({
