@@ -177,8 +177,6 @@ app.post('/add-review', (req, res) => {
         time
     }
 
-    //console.log(updateObject);
-
     Service.updateOne({_id: updatedId}, { $addToSet: { reviews: [updateObject]}}).then((result) => {
         res.json({
             success: true,
