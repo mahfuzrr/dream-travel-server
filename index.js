@@ -33,7 +33,6 @@ app.use(express.urlencoded({ extended: true }));
 // all routes
 
 // verify user
-
 const authCheck = (req, res, next) => {
     const token = req.headers.authorization;
 
