@@ -22,6 +22,10 @@ const serviceSchema = mongoose.Schema(
         type: String,
         default: 0,
     },
+    time:{
+        type: Date,
+        required: true,
+    },
     reviews:[
         {
             userName:{
