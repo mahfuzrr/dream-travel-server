@@ -40,11 +40,12 @@ app.get('/test', (req, res) => {
 
 //add service
 app.post('/add-services', (req, res) => {
-    const { userId, title, price, photoURL, description } = req.body;
+    const { userId, email, title, price, photoURL, description } = req.body;
     const date = new Date();
 
     const newService = new Service({
         userId: userId,
+        email,
         title,
         photoURL,
         description,
@@ -121,20 +122,26 @@ app.get('/get-all-services', async(req, res) => {
 
 // add review
 app.post('/add-review', (req, res) => {
-    const {userName, photoURL, time, review, id } = req.body;
+    const {uId, serviceName, serviceId, userName, photoURL, time, review, id } = req.body;
 
     const updatedId = mongoose.Types.ObjectId(id);
+
     const updateObject = {
+        uId,
+        serviceName,
+        serviceId,
         userName,
         photoURL,
         review,
         time
     }
 
+    //console.log(updateObject);
+
     Service.updateOne({_id: updatedId}, { $addToSet: { reviews: [updateObject]}}).then((result) => {
         res.json({
             success: true,
-            message: "Posted Successfully!",
+            message: result,
         });
     }).catch((err) => {
         res.json({
@@ -144,6 +151,63 @@ app.post('/add-review', (req, res) => {
     })
 });
 
+
+// get review by uid
+app.get('/get-user-reviews/:id', async(req, res) => {
+    const {id} = req.params;
+
+    try{
+        const test = await Service.collection.find({reviews: {$elemMatch: {uId: id}}}).toArray();
+        res.json({
+            success: true,
+            message: test,
+        });
+    }catch(err){
+        res.json({
+            success: false,
+            message: err.message,
+        })
+    }
+});
+
+// update review
+app.patch('/update-review', (req, res) => {
+    const {review, sid, rid} = req.body;
+
+    const updatedId = mongoose.Types.ObjectId(sid);
+    const updatedId1 = mongoose.Types.ObjectId(rid);
+
+    Service.updateOne({_id: updatedId, "reviews._id": updatedId1}, {$set: {"reviews.$.review": review}}).then((result) => {
+        res.json({
+            success: true,
+            message: result,
+        })
+    }).catch((err) => {
+        res.json({
+            success: false,
+            message: err.message,
+        })
+    })
+})
+
+// delete review
+app.patch('/delete-review', (req, res) => {
+    const {sid, rid} = req.body;
+    const updatedId = mongoose.Types.ObjectId(sid);
+    const updatedId1 = mongoose.Types.ObjectId(rid);
+    
+    Service.updateOne({_id: updatedId}, { $pull: { reviews: { _id: updatedId1 } }}).then((result) => {
+        res.json({
+            success: true,
+            message: result,
+        });
+    }).catch((err) => {
+        res.json({
+            success: false,
+            message: err.message,
+        })
+    })
+})
 
 // 404 handler
 app.use(notFoundHandler);

@@ -6,6 +6,10 @@ const serviceSchema = mongoose.Schema(
         type: String,
         required: true,
     },
+    email: {
+        type: String,
+        default: null,
+    },
     title:{
         type: String,
         required: true,
@@ -28,9 +32,21 @@ const serviceSchema = mongoose.Schema(
     },
     reviews:[
         {
+            uId:{
+                type: String,
+                default: null,
+            },
+            serviceName:{
+                type: String,
+                default: null,
+            },
+            serviceId:{
+                type: String,
+                default: null,
+            },
             userName:{
                 type: String,
-                required: true,
+                default: null,
             },
             photoURL:{
                 type: String,
@@ -38,11 +54,11 @@ const serviceSchema = mongoose.Schema(
             },
             review:{
                 type: String,
-                required: true,
+                default: null,
             },
             time:{
-                type: Date,
-                required: true,
+                type: String,
+                default: null,
             },
         }
     ]
