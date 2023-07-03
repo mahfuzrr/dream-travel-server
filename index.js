@@ -147,7 +147,9 @@ app.get('/get-service-details/:id', (req, res) => {
 // get all services
 app.get('/get-all-services', async(req, res) => {
     try{
-        const test = await Service.collection.find().toArray();
+        const test =  await Service.find();
+        //const test1 = await test.toArray();
+
         res.json({
             success: true,
             message: test,
@@ -192,10 +194,10 @@ app.post('/add-review', (req, res) => {
 
 
 // get review by uid
-app.get('/get-user-reviews/:id', authCheck, async(req, res) => {
+app.get('/get-user-reviews/:id', async(req, res) => {
     const {id} = req.params;
     try{
-        const test = await Service.collection.find({reviews: {$elemMatch: {uId: id}}}).toArray();
+        const test = await Service.find({reviews: {$elemMatch: {uId: id}}});
         res.json({
             success: true,
             message: test,
