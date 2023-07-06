@@ -6,6 +6,7 @@ const cors = require("cors");
 const Service = require('./Service');
 const { notFoundHandler, errorHandler } = require("./errorHandler");
 const jwt = require('jsonwebtoken');
+const User = require("./User");
 
 const port = process.env.PORT || 5000;
 
@@ -31,6 +32,12 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // all routes
+
+app.get('/', (req, res) => {
+    res.json({
+        message: "Welcome to api",
+    });
+});
 
 // verify user
 const authCheck = (req, res, next) => {
@@ -77,6 +84,40 @@ app.post('/jwt-token', (req, res) => {
         success: true,
         token,
     });
+});
+
+
+// add user
+app.post('/add-user', (req, res) => {
+    const {name, email, password, photoURL, uId} = req.body;
+
+    let newPass = '';
+    let avatar = 'https://bootdey.com/img/Content/avatar/avatar6.png';
+
+    if(password)newPass = password;
+    if(photoURL)avatar = photoURL;
+
+
+    const newUser = new User({
+        userName: name,
+        email,
+        password: newPass,
+        avatar,
+        uId
+    });
+
+    newUser.save().then(() => {
+        res.json({
+            success: true,
+            message: 'User saved Successfully',
+        });
+    }).catch((err) => {
+        
+        res.json({
+            success: false,
+            message: err.message,
+        })
+    })
 });
 
 //add service
@@ -163,6 +204,25 @@ app.get('/get-all-services', async(req, res) => {
     }
 });
 
+//delete service
+app.delete('/delete-service/:id', (req, res) => {
+    const {id} = req.params;
+
+    const newId = mongoose.Types.ObjectId(id);
+
+    Service.deleteOne({"_id": newId}).then((result) => {
+        res.json({
+            success: 'true',
+            message: 'Deleted Successfully',
+        });
+    }).catch((err) => {
+        res.json({
+            success: false,
+            message: err.message,
+        })
+    })
+})
+
 // add review
 app.post('/add-review', (req, res) => {
     const {uId, serviceName, serviceId, userName, photoURL, time, review, id } = req.body;
@@ -198,6 +258,7 @@ app.get('/get-user-reviews/:id', async(req, res) => {
     const {id} = req.params;
     try{
         const test = await Service.find({reviews: {$elemMatch: {uId: id}}});
+        console.log(test);
         res.json({
             success: true,
             message: test,
